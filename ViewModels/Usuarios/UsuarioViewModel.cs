@@ -31,7 +31,6 @@ namespace AppRpgEtec.ViewModels.Usuarios
         public ICommand DirecionarCadastroCommand { get; set; }
 
 
-        //Meu IP inletex 192.168.2.167
         #region AtributosPropriedades
         private string login = string.Empty;
         private string senha = string.Empty;
