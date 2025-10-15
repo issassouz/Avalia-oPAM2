@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -54,6 +55,10 @@ namespace AppRpgEtec.ViewModels.Usuarios
             } 
         }
 
+
+        private CancellationTokenSource _cancelTokenSource;
+        private bool _isCheckingLocation;
+
         #endregion
 
         #region Metodos
@@ -76,6 +81,25 @@ namespace AppRpgEtec.ViewModels.Usuarios
                     Preferences.Set("UsuarioUsername", uAutenticado.Username);
                     Preferences.Set("UsuarioPerfil", uAutenticado.Perfil);
                     Preferences.Set("UsuarioToken", uAutenticado.Token);
+
+                    // Início da coleta de Geolocalização atual para Atualização na API
+                    _isCheckingLocation = true;
+                    _cancelTokenSource = new CancellationTokenSource();
+                    GeolocationRequest request = new GeolocationRequest(
+                        GeolocationAccuracy.Medium,
+                        TimeSpan.FromSeconds(10)
+                    );
+
+                    Location location = await Geolocation.Default.GetLocationAsync(request, _cancelTokenSource.Token);
+
+                    Usuario uLoc = new Usuario();
+                    uLoc.Id = uAutenticado.Id;
+                    uLoc.Latitude = location.Latitude;
+                    uLoc.Longitude = location.Longitude;
+
+                    UsuarioService uServiceLoc = new UsuarioService(uAutenticado.Token);
+                    await uServiceLoc.PutAtualizarLocalizacaoAsync(uLoc);
+                    // Fim da coleta de Geolocalização atual para Atualização na API
 
                     await Application.Current.MainPage
                         .DisplayAlert("Informação", mensagem, "Ok");
@@ -133,6 +157,16 @@ namespace AppRpgEtec.ViewModels.Usuarios
                 await Application.Current.MainPage
                     .DisplayAlert("Informação", ex.Message + " Detalhes: " + ex.InnerException, "Ok");
             }
+        }
+
+        internal async Task<ObservableCollection<Usuario>> GetUsuariosAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public static implicit operator UsuarioViewModel(UsuarioService v)
+        {
+            throw new NotImplementedException();
         }
 
 
